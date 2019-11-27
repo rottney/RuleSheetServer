@@ -1,0 +1,68 @@
+package com.example.demo;
+
+import java.util.Iterator;
+import java.util.regex.Pattern;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+@Controller
+@RequestMapping(path="/home")
+public class MainController {
+
+	@Autowired
+	private RuleSheetRepository ruleSheetRepository;
+
+	/*
+	 * Input Format:
+	 * curl localhost:8080/home/add -d name=NAME --data-urlencode contents="CONTENTS"
+	 * TODO: handle quotes...
+	 * */
+	@PostMapping(path="/add")
+	public @ResponseBody String addNewRuleSheet(@RequestParam String name, 
+			@RequestParam String contents) {
+
+		String expenseRoutingRegex = "ExpenseRouting_[0-9]+.txt";
+		String complianceRegex = "Compliance_[0-9]+.txt";
+		String submitComplianceRegex = "SubmitCompliance_[0-9]+.txt";
+
+		if (!Pattern.matches(expenseRoutingRegex, name) 
+				&& !Pattern.matches(complianceRegex, name) 
+				&& !Pattern.matches(submitComplianceRegex, name)) {
+			return "This application only supports ExpenseRouting, Compliance, "
+					+ "and SubmitCompliance rules, in .txt format.\n"
+					+ "Format:\t<RuleType>_<CustomerID>";
+		}
+
+		Iterable<RuleSheet> result = ruleSheetRepository.findAll();
+		Iterator<RuleSheet> iter = result.iterator();
+		
+		int currVersion = 0;
+		while (iter.hasNext()) {
+			RuleSheet rs = iter.next();
+			if (rs.getName().compareTo(name) == 0) {
+				if (rs.getVersion() > currVersion) {
+					currVersion = rs.getVersion();
+				}
+			}
+		}
+		currVersion++;
+
+		RuleSheet rs = new RuleSheet();
+		rs.setName(name);
+		rs.setVersion(currVersion);
+		rs.setContents(contents);
+		ruleSheetRepository.save(rs);
+		return "File '"  + name + "', version " + currVersion + " has been added.";
+	}
+
+	@GetMapping(path="/view")
+	public @ResponseBody Iterable<RuleSheet> getAllRuleSheets() {
+		return ruleSheetRepository.findAll();
+	}
+
+}
