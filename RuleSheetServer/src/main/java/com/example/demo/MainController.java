@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import java.util.Iterator;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -20,12 +21,13 @@ public class MainController {
 	/*
 	 * Input Format:
 	 * curl localhost:8080/home/add -d name=NAME --data-urlencode contents="CONTENTS"
-	 * TODO: handle quotes...
 	 * */
 	@PostMapping(path="/add")
 	public @ResponseBody String addNewRuleSheet(@RequestParam String name, 
 			@RequestParam String contents) {
+		System.out.println("made it here lol");
 
+		// Supported file name formats
 		String expenseRoutingRegex = "ExpenseRouting_[0-9]+.txt";
 		String complianceRegex = "Compliance_[0-9]+.txt";
 		String submitComplianceRegex = "SubmitCompliance_[0-9]+.txt";
@@ -37,7 +39,15 @@ public class MainController {
 					+ "and SubmitCompliance rules, in .txt format.\n"
 					+ "Format:\t<RuleType>_<CustomerID>";
 		}
+		
+		// Handle emojis by removing all emojis from contents
+		String regex = "[^\\p{L}\\p{N}\\p{P}\\p{Z}]";
+		Pattern pattern = Pattern.compile(regex, Pattern.UNICODE_CHARACTER_CLASS);
+		Matcher matcher = pattern.matcher(contents);
+		contents = matcher.replaceAll("");
 
+		// If rule sheet of the same name exists, create a new version.
+		// Else, create version 1.
 		Iterable<RuleSheet> result = ruleSheetRepository.findAll();
 		Iterator<RuleSheet> iter = result.iterator();
 		
