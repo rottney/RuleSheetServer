@@ -20,12 +20,11 @@ public class MainController {
 
 	/*
 	 * Input Format:
-	 * curl localhost:8080/home/add -d name=NAME --data-urlencode contents="CONTENTS"
+	 * curl localhost:8080/home/add -d name=NAME -d contents="CONTENTS"
 	 * */
 	@PostMapping(path="/add")
 	public @ResponseBody String addNewRuleSheet(@RequestParam String name, 
 			@RequestParam String contents) {
-		System.out.println("made it here lol");
 
 		// Supported file name formats
 		String expenseRoutingRegex = "ExpenseRouting_[0-9]+.txt";
@@ -62,6 +61,7 @@ public class MainController {
 		}
 		currVersion++;
 
+		// Save rule sheet to database
 		RuleSheet rs = new RuleSheet();
 		rs.setName(name);
 		rs.setVersion(currVersion);
