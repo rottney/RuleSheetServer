@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -75,11 +76,22 @@ public class MainController {
 	// Return 10 most recent results
 	@GetMapping(path = "/view")
 	public @ResponseBody Iterable<RuleSheet> getRecentRuleSheets() {
-		List<Integer> ids = new ArrayList<Integer>();
-		for (int i = (int) (ruleSheetRepository.count() - 9); i <= ruleSheetRepository.count(); i++) {
-			ids.add((Integer) i);
+		Iterable<RuleSheet> result = ruleSheetRepository.findAll();
+		Iterator<RuleSheet> iter = result.iterator();
+		
+		List<Integer> allIds = new ArrayList<Integer>();
+		while (iter.hasNext()) {
+			RuleSheet rs = iter.next();
+			allIds.add(rs.getId());
 		}
-		return ruleSheetRepository.findAllById(ids);
+		Collections.sort(allIds);
+		
+		List<Integer> top10Ids = new ArrayList<Integer>();
+		for (int i = allIds.size() - 10; i < allIds.size(); i++) {
+			top10Ids.add(allIds.get(i));
+		}
+		
+		return ruleSheetRepository.findAllById(top10Ids);
 	}
 
 }
