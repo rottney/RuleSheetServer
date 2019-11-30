@@ -1,6 +1,8 @@
 package com.example.demo;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,9 +72,14 @@ public class MainController {
 		return "File '"  + name + "', version " + currVersion + " has been added.";
 	}
 
-	@GetMapping(path="/view")
-	public @ResponseBody Iterable<RuleSheet> getAllRuleSheets() {
-		return ruleSheetRepository.findAll();
+	// Return 10 most recent results
+	@GetMapping(path = "/view")
+	public @ResponseBody Iterable<RuleSheet> getRecentRuleSheets() {
+		List<Integer> ids = new ArrayList<Integer>();
+		for (int i = (int) (ruleSheetRepository.count() - 9); i <= ruleSheetRepository.count(); i++) {
+			ids.add((Integer) i);
+		}
+		return ruleSheetRepository.findAllById(ids);
 	}
 
 }
