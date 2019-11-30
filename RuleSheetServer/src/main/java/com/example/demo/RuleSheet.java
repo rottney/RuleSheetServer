@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 
 @Entity
 public class RuleSheet {
@@ -15,6 +16,8 @@ public class RuleSheet {
 	
 	private int version;
 	
+	// 1,451,114 character limit
+	@Lob
 	private String contents;
 	
 	public Integer getId() {

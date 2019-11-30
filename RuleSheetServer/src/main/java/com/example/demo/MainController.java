@@ -1,6 +1,9 @@
 package com.example.demo;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -19,13 +22,13 @@ public class MainController {
 
 	/*
 	 * Input Format:
-	 * curl localhost:8080/home/add -d name=NAME --data-urlencode contents="CONTENTS"
-	 * TODO: handle quotes...
+	 * curl localhost:8080/home/add -d name=NAME -d contents="CONTENTS"
 	 * */
 	@PostMapping(path="/add")
 	public @ResponseBody String addNewRuleSheet(@RequestParam String name, 
 			@RequestParam String contents) {
 
+		// Supported file name formats
 		String expenseRoutingRegex = "ExpenseRouting_[0-9]+.txt";
 		String complianceRegex = "Compliance_[0-9]+.txt";
 		String submitComplianceRegex = "SubmitCompliance_[0-9]+.txt";
@@ -37,7 +40,15 @@ public class MainController {
 					+ "and SubmitCompliance rules, in .txt format.\n"
 					+ "Format:\t<RuleType>_<CustomerID>";
 		}
+		
+		// Handle emojis by removing all emojis from contents
+		String regex = "[^\\p{L}\\p{N}\\p{P}\\p{Z}]";
+		Pattern pattern = Pattern.compile(regex, Pattern.UNICODE_CHARACTER_CLASS);
+		Matcher matcher = pattern.matcher(contents);
+		contents = matcher.replaceAll("");
 
+		// If rule sheet of the same name exists, create a new version.
+		// Else, create version 1.
 		Iterable<RuleSheet> result = ruleSheetRepository.findAll();
 		Iterator<RuleSheet> iter = result.iterator();
 		
@@ -52,6 +63,7 @@ public class MainController {
 		}
 		currVersion++;
 
+		// Save rule sheet to database
 		RuleSheet rs = new RuleSheet();
 		rs.setName(name);
 		rs.setVersion(currVersion);
@@ -60,9 +72,14 @@ public class MainController {
 		return "File '"  + name + "', version " + currVersion + " has been added.";
 	}
 
-	@GetMapping(path="/view")
-	public @ResponseBody Iterable<RuleSheet> getAllRuleSheets() {
-		return ruleSheetRepository.findAll();
+	// Return 10 most recent results
+	@GetMapping(path = "/view")
+	public @ResponseBody Iterable<RuleSheet> getRecentRuleSheets() {
+		List<Integer> ids = new ArrayList<Integer>();
+		for (int i = (int) (ruleSheetRepository.count() - 9); i <= ruleSheetRepository.count(); i++) {
+			ids.add((Integer) i);
+		}
+		return ruleSheetRepository.findAllById(ids);
 	}
 
 }
