@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +42,7 @@ public class MainController {
 					+ "and SubmitCompliance rules, in .txt format.\n"
 					+ "Format:\t<RuleType>_<CustomerID>";
 		}
-		
+
 		// Handle emojis by removing all emojis from contents
 		String regex = "[^\\p{L}\\p{N}\\p{P}\\p{Z}]";
 		Pattern pattern = Pattern.compile(regex, Pattern.UNICODE_CHARACTER_CLASS);
@@ -52,7 +53,7 @@ public class MainController {
 		// Else, create version 1.
 		Iterable<RuleSheet> result = ruleSheetRepository.findAll();
 		Iterator<RuleSheet> iter = result.iterator();
-		
+
 		int currVersion = 0;
 		while (iter.hasNext()) {
 			RuleSheet rs = iter.next();
@@ -73,25 +74,38 @@ public class MainController {
 		return "File '"  + name + "', version " + currVersion + " has been added.";
 	}
 
-	// Return 10 most recent results
+	// Return 10 most recent results, by descending id
 	@GetMapping(path = "/view")
 	public @ResponseBody Iterable<RuleSheet> getRecentRuleSheets() {
-		Iterable<RuleSheet> result = ruleSheetRepository.findAll();
-		Iterator<RuleSheet> iter = result.iterator();
-		
+		Iterable<RuleSheet> all = ruleSheetRepository.findAll();
+		Iterator<RuleSheet> iter = all.iterator();
+
 		List<Integer> allIds = new ArrayList<Integer>();
 		while (iter.hasNext()) {
 			RuleSheet rs = iter.next();
 			allIds.add(rs.getId());
 		}
 		Collections.sort(allIds);
-		
+
 		List<Integer> top10Ids = new ArrayList<Integer>();
-		for (int i = allIds.size() - 10; i < allIds.size(); i++) {
+		for (int i = allIds.size() - 1; i >= allIds.size() - 10; i--) {
 			top10Ids.add(allIds.get(i));
 		}
-		
-		return ruleSheetRepository.findAllById(top10Ids);
+
+		List<RuleSheet> result = new ArrayList<RuleSheet>();
+		for (int i = 0; i < 10; i++) {
+			RuleSheet rs = new RuleSheet();
+			try {
+				Optional<RuleSheet> idk = ruleSheetRepository.findById(top10Ids.get(i));
+				rs = idk.get();
+				result.add(rs);
+			}
+			catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return result;
 	}
 
 }
