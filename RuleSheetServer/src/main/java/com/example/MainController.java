@@ -74,11 +74,16 @@ public class MainController {
 		return "File '"  + name + "', version " + currVersion + " has been added.";
 	}
 
-	// Return 10 most recent results, by descending id
+	// Return (up to) 10 most recent results, by descending id
 	@GetMapping(path = "/view")
 	public @ResponseBody Iterable<RuleSheet> getRecentRuleSheets() {
+		// Getting all in case of deleted records
 		Iterable<RuleSheet> all = ruleSheetRepository.findAll();
 		Iterator<RuleSheet> iter = all.iterator();
+		
+		if (all.equals(null)) {
+			return all;
+		}
 
 		List<Integer> allIds = new ArrayList<Integer>();
 		while (iter.hasNext()) {
@@ -88,16 +93,23 @@ public class MainController {
 		Collections.sort(allIds);
 
 		List<Integer> top10Ids = new ArrayList<Integer>();
-		for (int i = allIds.size() - 1; i >= allIds.size() - 10; i--) {
-			top10Ids.add(allIds.get(i));
+		if (allIds.size() >= 10) {
+			for (int i = allIds.size() - 1; i >= allIds.size() - 10; i--) {
+				top10Ids.add(allIds.get(i));
+			}
+		}
+		else {
+			for (int i = allIds.size() - 1; i >= 0; i--) {
+				top10Ids.add(allIds.get(i));
+			}
 		}
 
 		List<RuleSheet> result = new ArrayList<RuleSheet>();
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < top10Ids.size(); i++) {
 			RuleSheet rs = new RuleSheet();
 			try {
-				Optional<RuleSheet> idk = ruleSheetRepository.findById(top10Ids.get(i));
-				rs = idk.get();
+				Optional<RuleSheet> temp = ruleSheetRepository.findById(top10Ids.get(i));
+				rs = temp.get();
 				result.add(rs);
 			}
 			catch (IllegalArgumentException e) {
