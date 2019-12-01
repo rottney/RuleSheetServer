@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>JpaMySql-Test</artifactId>
+	<artifactId>RuleSheetServer</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>JpaMySql-Test</name>
-	<description>try to link jpa and mysql</description>
+	<name>RuleSheetServer</name>
+	<description>Promote rule sheets to database</description>
 
 	<properties>
 		<java.version>1.8</java.version>
