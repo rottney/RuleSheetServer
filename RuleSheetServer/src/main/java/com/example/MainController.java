@@ -24,7 +24,7 @@ public class MainController {
 
 	/*
 	 * Input Format:
-	 * curl localhost:8080/home/add -d name=NAME -d contents="CONTENTS"
+	 * curl localhost:5000/home/add -d name=NAME -d contents="CONTENTS"
 	 * */
 	@PostMapping(path="/add")
 	public @ResponseBody String addNewRuleSheet(@RequestParam String name, 
@@ -77,20 +77,22 @@ public class MainController {
 	// Return (up to) 10 most recent results, by descending id
 	@GetMapping(path = "/view")
 	public @ResponseBody Iterable<RuleSheet> getRecentRuleSheets() {
-		// Getting all in case of deleted records
+		
 		Iterable<RuleSheet> all = ruleSheetRepository.findAll();
 		Iterator<RuleSheet> iter = all.iterator();
 		
 		if (all.equals(null)) {
 			return all;
 		}
-
+		
+		/* This implementation cycles through all IDs in case any are deleted. */
 		List<Integer> allIds = new ArrayList<Integer>();
 		while (iter.hasNext()) {
 			RuleSheet rs = iter.next();
 			allIds.add(rs.getId());
 		}
 		Collections.sort(allIds);
+
 
 		List<Integer> top10Ids = new ArrayList<Integer>();
 		if (allIds.size() >= 10) {
@@ -104,6 +106,7 @@ public class MainController {
 			}
 		}
 
+		
 		List<RuleSheet> result = new ArrayList<RuleSheet>();
 		for (int i = 0; i < top10Ids.size(); i++) {
 			RuleSheet rs = new RuleSheet();
