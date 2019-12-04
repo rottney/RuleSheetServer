@@ -14,7 +14,7 @@ There is nothing to install.  Three instances are currently running on Elastic B
 
 Each of these links display the names, version numbers, and contents of the 10 most recently-promoted files to their respective clusters
 (unless fewer than 10 entries exist for that cluster, in which case all entries are returned).
-Results are ordered from most-recently added to least-recently added.
+Results are ordered from most recently-added to least recently-added.
 
 
 **RULES:**
