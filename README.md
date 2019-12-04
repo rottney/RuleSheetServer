@@ -21,7 +21,7 @@ Results are ordered from most recently-added to least recently-added.
 Though these validations are also performed on the front end, the following validations are performed before files are written to the databases:
 * File name must be of the format \<RuleType>\_\<CustomerID>\.txt
 * RuleType is either ExpenseRouting, Compliance, or SubmitCompliance
-* CustomerID is between 0 and 1499, inclusive.
+* CustomerID is between 0 and 1499, inclusive (Note:  this condition is not validated on the FE)
 
 
 **VERSIONING:**
