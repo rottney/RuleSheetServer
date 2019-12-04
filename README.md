@@ -29,8 +29,9 @@ Any time a file whose name already exists on the server is promoted, version n+1
 
 **TESTING:**
 Please see the [client documentation](https://github.com/rottney/PromoteFiles/blob/master/README.md) for general application usage,
-but if you wish to bypass this client-side validation for additional testing, please run the following command in a terminal:
+but if you wish to bypass this client-side validation for additional testing, please run the following command in a terminal to add a new file:
 
 ```curl http://cluster<n>.3dpqdi6p3x.us-west-2.elasticbeanstalk.com/home/add -d name=NAME -d contents="CONTENTS"```
 
 replacing `<n>` with 1, 2, or 3 (and also removing the angle brackets).
+Please note that using this method, the routing rules defined in the client documentation are not enforced; i.e., a file with any CustomerID may be routed to any cluster.
