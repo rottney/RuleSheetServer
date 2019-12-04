@@ -12,7 +12,7 @@ There is nothing to install.  Three instances are currently running on Elastic B
 * [cluster 2](http://cluster2.3dpqdi6p3x.us-west-2.elasticbeanstalk.com/home/view), for customers 500 to 999 (incl.)
 * [cluster 3](http://cluster3.3dpqdi6p3x.us-west-2.elasticbeanstalk.com/home/view), for customers 1000 to 1499 (incl.)
 
-Each of these links display the names and contents of the 10 most recently-promoted files to their respective clusters
+Each of these links display the names, version numbers, and contents of the 10 most recently-promoted files to their respective clusters
 (unless fewer than 10 entries exist for that cluster, in which case all entries are returned).
 
 
