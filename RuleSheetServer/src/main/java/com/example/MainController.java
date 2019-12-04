@@ -1,12 +1,5 @@
 package com.example;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import com.example.Utils;
 
 @Controller
 @RequestMapping(path="/home")
@@ -22,105 +16,37 @@ public class MainController {
 	@Autowired
 	private RuleSheetRepository ruleSheetRepository;
 
-	/*
-	 * Input Format:
-	 * curl localhost:5000/home/add -d name=NAME -d contents="CONTENTS"
-	 * */
+	// Input Format:
+	// curl localhost:5000/home/add -d name=NAME -d contents="CONTENTS"
 	@PostMapping(path="/add")
 	public @ResponseBody String addNewRuleSheet(@RequestParam String name, 
 			@RequestParam String contents) {
 
-		// Supported file name formats
-		String expenseRoutingRegex = "ExpenseRouting_[0-9]+.txt";
-		String complianceRegex = "Compliance_[0-9]+.txt";
-		String submitComplianceRegex = "SubmitCompliance_[0-9]+.txt";
-
-		if (!Pattern.matches(expenseRoutingRegex, name) 
-				&& !Pattern.matches(complianceRegex, name) 
-				&& !Pattern.matches(submitComplianceRegex, name)) {
+		if (Utils.isFileFormatSupported(name)) {
 			return "This application only supports ExpenseRouting, Compliance, "
 					+ "and SubmitCompliance rules, in .txt format.\n"
 					+ "Format:\t<RuleType>_<CustomerID>";
 		}
-
-		// Handle emojis by removing all emojis from contents
-		String regex = "[^\\p{L}\\p{N}\\p{P}\\p{Z}]";
-		Pattern pattern = Pattern.compile(regex, Pattern.UNICODE_CHARACTER_CLASS);
-		Matcher matcher = pattern.matcher(contents);
-		contents = matcher.replaceAll("");
-
-		// If rule sheet of the same name exists, create a new version.
-		// Else, create version 1.
-		Iterable<RuleSheet> result = ruleSheetRepository.findAll();
-		Iterator<RuleSheet> iter = result.iterator();
-
-		int currVersion = 0;
-		while (iter.hasNext()) {
-			RuleSheet rs = iter.next();
-			if (rs.getName().compareTo(name) == 0) {
-				if (rs.getVersion() > currVersion) {
-					currVersion = rs.getVersion();
-				}
-			}
+		
+		if (!Utils.isCustomerIdInRange(name)) {
+			return "Your CustomerID is out of range.\n"
+					+ "We only support values between 0 and 1499.";
 		}
-		currVersion++;
-
-		// Save rule sheet to database
-		RuleSheet rs = new RuleSheet();
-		rs.setName(name);
-		rs.setVersion(currVersion);
-		rs.setContents(contents);
-		ruleSheetRepository.save(rs);
+		
+		// Handle emojis by simply removing them from file contents
+		contents = Utils.removeEmojisFromContents(contents);
+		
+		// By design, versioning starts at 1.
+		int currVersion = Utils.setVersion(ruleSheetRepository, name);
+		
+		Utils.saveToDatabase(ruleSheetRepository, name, currVersion, contents);
 		return "File '"  + name + "', version " + currVersion + " has been added.";
 	}
 
 	// Return (up to) 10 most recent results, by descending id
 	@GetMapping(path = "/view")
-	public @ResponseBody Iterable<RuleSheet> getRecentRuleSheets() {
-		
-		Iterable<RuleSheet> all = ruleSheetRepository.findAll();
-		Iterator<RuleSheet> iter = all.iterator();
-		
-		if (all.equals(null)) {
-			return all;
-		}
-		
-		/* This implementation cycles through all IDs in case any are deleted. */
-		List<Integer> allIds = new ArrayList<Integer>();
-		while (iter.hasNext()) {
-			RuleSheet rs = iter.next();
-			allIds.add(rs.getId());
-		}
-		Collections.sort(allIds);
-
-
-		List<Integer> top10Ids = new ArrayList<Integer>();
-		if (allIds.size() >= 10) {
-			for (int i = allIds.size() - 1; i >= allIds.size() - 10; i--) {
-				top10Ids.add(allIds.get(i));
-			}
-		}
-		else {
-			for (int i = allIds.size() - 1; i >= 0; i--) {
-				top10Ids.add(allIds.get(i));
-			}
-		}
-
-		
-		List<RuleSheet> result = new ArrayList<RuleSheet>();
-		for (int i = 0; i < top10Ids.size(); i++) {
-			RuleSheet rs = new RuleSheet();
-			try {
-				Optional<RuleSheet> temp = ruleSheetRepository.findById(top10Ids.get(i));
-				rs = temp.get();
-				result.add(rs);
-			}
-			catch (IllegalArgumentException e) {
-				e.printStackTrace();
-			}
-		}
-
-		return result;
+	public @ResponseBody Iterable<RuleSheet> viewRuleSheets() {	
+		return Utils.getRecentRuleSheets(ruleSheetRepository);
 	}
 
 }
