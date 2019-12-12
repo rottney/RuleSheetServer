@@ -2,6 +2,10 @@
 Server to which files may be promoted via HTTP
 
 
+**UPDATE:**
+The server is currently turned off due to AWS free tier restrictions.  To turn back on, please contact the maintainer at rottney123@gmail.com.
+
+
 **SUMMARY:**
 This is the back end for the [PromoteFiles CLI app](https://github.com/rottney/PromoteFiles/blob/master/README.md).
 
